@@ -99,15 +99,16 @@ class DAO():
         cursor.execute(query, (anno, brand, ret))
 
         for row in cursor:
-            print(row)
             formatted_row = f"Data: {row['data']}; Ricavo: {row['ricavo']}; Retailer: {row['numRet']}; Product: {row['numProd']}"
-            print(formatted_row)
             a.append(formatted_row)
-        print(a)
+
         return a
 
-    def getAnalisiVendite(self):
+    def getAnalisiVendite(self, anno, brand, ret):
         a = []
+        ricavi = 0
+        nRet = []
+        nProd = []
         cnx = mysql.connector.connect(  # creo la connessione
             user="root",
             password="AticniviR1121!",
@@ -115,8 +116,47 @@ class DAO():
             database="go_sales")
         cursor = cnx.cursor(dictionary=True)
 
+        query = """select year(s.Date) as anno,
+                p.Product_brand as brand,
+                r.Retailer_name as retailer,
+                s.Unit_sale_price *s.Quantity as ricavo,
+                p.Product_number as numProd,
+                r.Retailer_code as numRet,
+                s.Date as data
+                
+                from go_daily_sales s
+                join go_products p on s.Product_number = p.Product_number 
+                join go_retailers r on s.Retailer_code = r.Retailer_code 
+                
+                where
+                year(s.Date) = coalesce (%s, year(s.Date)) and
+                p.Product_brand = coalesce (%s, p.Product_brand)and
+                r.Retailer_name = coalesce (%s, r.Retailer_name)
+                
+                order by ricavo desc"""
+
+        cursor.execute(query, (anno, brand, ret))
+
+        for row in cursor:
+            ricavi += row['ricavo']
+
+            if not nRet.__contains__(row['retailer']):
+                nRet.append(row['retailer'])
+
+            if not nProd.__contains__(row['numProd']):
+                nProd.append(row['numProd'])
+
+            a.append(row)
+
+        formatted_row = f"Giro d'affari: {ricavi}\n" \
+                        f"Numero vendite: {len(a)}\n" \
+                        f"Numero retailers coinvolti: {len(nRet)}\n" \
+                        f"Numero prodotti coinvolti: {len(nProd)}"
+        return formatted_row
 
 
 if __name__ == "__main__":
     mydao = DAO()
-    print(mydao.getTopVendite("2017", "Star", "Connor Department Store"))
+    print(mydao.getAnalisiVendite("2017", "Star", "Grand choix"))
+    print(mydao.getAnalisiVendite(None, None, None))
+

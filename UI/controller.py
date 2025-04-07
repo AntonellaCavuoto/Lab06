@@ -54,7 +54,6 @@ class Controller:
         brand = self._view.dd_brand.value
         ret = self._view.dd_retailer.value
 
-
         if anno == "Nessun filtro":
             anno = None
 
@@ -73,4 +72,29 @@ class Controller:
 
 
     def handle_analizzaVendite(self, e):
-        pass
+        self._view.txt_result.controls.clear()
+
+        anno = self._view.dd_anno.value
+        brand = self._view.dd_brand.value
+        ret = self._view.dd_retailer.value
+
+        if anno == "Nessun filtro":
+            anno = None
+
+        if brand == "Nessun filtro":
+            brand = None
+
+        if ret == "Nessun filtro":
+            ret = None
+
+        self._view.txt_result.controls.append(ft.Text("Statistiche vendite:"))
+        analisi = self._model.getAnalisiVendite(anno, brand, ret)
+        self._view.txt_result.controls.append(ft.Text(analisi))
+
+        self._view.update_page()
+
+
+
+
+
+

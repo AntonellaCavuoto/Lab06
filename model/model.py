@@ -19,6 +19,10 @@ class Model:
         print(list)
         return list
 
+    def getAnalisiVendite(self, anno, brand, retailer):
+        return self.DAO.getAnalisiVendite(anno, brand, retailer)
+
+
 
 
 
